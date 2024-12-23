@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: order-service
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/orderdb
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: order-service-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+kafka:
+  topics:
+    order-processed: order-processed-topic
+    order-created: order-created-topic
+
+server:
+  port: 8080
+
+logging:
+  level:
+    com.lopes.order: DEBUG
+    org.springframework.data.mongodb: INFO
+    org.springframework.kafka: INFO
