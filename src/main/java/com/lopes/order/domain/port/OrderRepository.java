@@ -1,4 +1,4 @@
-package com.lopes.order.domain.repository;
+package com.lopes.order.domain.port;
 
 import com.lopes.order.domain.model.Order;
 import java.util.Optional;
@@ -9,5 +9,4 @@ public interface OrderRepository {
     Optional<Order> findById(String id);
     List<Order> findAll();
     void deleteById(String id);
-    boolean existePedidoClienteProdutos(String idCliente, List<String> idsProdutos);
 }

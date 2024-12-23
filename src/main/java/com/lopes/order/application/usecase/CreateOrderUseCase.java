@@ -2,44 +2,52 @@ package com.lopes.order.application.usecase;
 
 import com.lopes.order.domain.model.Order;
 import com.lopes.order.domain.model.OrderStatus;
-import com.lopes.order.domain.repository.OrderRepository;
-import com.lopes.order.domain.exception.PedidoDuplicadoException;
+import com.lopes.order.domain.model.Product;
+import com.lopes.order.domain.port.OrderRepository;
+import com.lopes.order.domain.port.ProductService;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class CreateOrderUseCase {
     private final OrderRepository orderRepository;
-    private final CalculateOrderTotalUseCase calculateOrderTotalUseCase;
+    private final ProductService productService;
 
-    public record CreateOrderInput(String customerId, List<String> productIds) {}
-    public record CreateOrderOutput(String orderId) {}
+    @Builder
+    public record CreateOrderInput(
+        String customerId,
+        List<String> productIds
+    ) {}
+
+    @Builder
+    public record CreateOrderOutput(
+        String orderId
+    ) {}
 
     public CreateOrderOutput execute(CreateOrderInput input) {
-        validarPedidoDuplicado(input);
-        
-        var calculateInput = new CalculateOrderTotalUseCase.CalculateOrderTotalInput(input.productIds());
-        var valorTotal = calculateOrderTotalUseCase.execute(calculateInput).total();
+        // Validate products exist and calculate total
+        List<Product> products = productService.getProductsByIds(input.productIds());
+        BigDecimal total = products.stream()
+            .map(Product::price)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        var pedido = new Order(
+        // Create order
+        Order order = new Order(
             UUID.randomUUID().toString(),
             input.customerId(),
             input.productIds(),
-            valorTotal,
+            total,
             OrderStatus.PENDING
         );
 
-        orderRepository.save(pedido);
-        return new CreateOrderOutput(pedido.id());
-    }
-
-    private void validarPedidoDuplicado(CreateOrderInput input) {
-        if (orderRepository.existePedidoClienteProdutos(input.customerId(), input.productIds())) {
-            throw new PedidoDuplicadoException("Já existe um pedido para este cliente com os mesmos produtos");
-        }
+        // Save and return
+        Order savedOrder = orderRepository.save(order);
+        return new CreateOrderOutput(savedOrder.id());
     }
 }
