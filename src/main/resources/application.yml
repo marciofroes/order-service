@@ -4,21 +4,51 @@ spring:
   data:
     mongodb:
       uri: mongodb://localhost:27017/orderdb
+    redis:
+      host: localhost
+      port: 6379
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
       group-id: order-service-group
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.lopes.order.domain.event"
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 kafka:
   topics:
     order-processed: order-processed-topic
     order-created: order-created-topic
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        order.processing.time: true
+      sla:
+        order.processing.time: 100ms,500ms,1000ms
+
+product:
+  service:
+    url: http://localhost:8081/products
 
 server:
   port: 8080
@@ -28,3 +58,5 @@ logging:
     com.lopes.order: DEBUG
     org.springframework.data.mongodb: INFO
     org.springframework.kafka: INFO
+    org.springframework.data.redis: INFO
+    io.micrometer: INFO

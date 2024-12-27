@@ -1,18 +1,25 @@
 package com.lopes.order.adapters.rest.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-@Getter
+@Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class OrderRequestDTO {
+    @JsonProperty("customerId")
     @NotBlank(message = "Customer ID is required")
-    private final String customerId;
+    private String customerId;
 
+    @JsonProperty("productIds")
     @NotEmpty(message = "Order must have at least one product")
-    private final List<String> productIds;
+    private List<String> productIds;
 }

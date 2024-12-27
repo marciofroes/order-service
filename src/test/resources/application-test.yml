@@ -1,0 +1,41 @@
+spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}  # Será definido dinamicamente pelo TestContainers
+      redis:
+        host: ${embedded.redis.host}
+        port: ${embedded.redis.port}
+    kafka:
+      bootstrap-servers: ${spring.embedded.kafka.brokers}
+      topics:
+        order-events: order-events-topic
+      consumer:
+        group-id: test-group
+        auto-offset-reset: earliest
+        key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+        value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+        properties:
+          spring.json.trusted.packages: "com.lopes.order.domain.event"
+      producer:
+        key-serializer: org.apache.kafka.common.serialization.StringSerializer
+        value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+  mongodb:
+    embedded:
+      enabled: false  # Desabilita o MongoDB embutido
+      version: 6.0.8
+
+wiremock:
+  server:
+    port: 0  # Porta dinâmica para o WireMock
+
+product:
+  service:
+    url: http://localhost:${wiremock.server.port}
+
+logging:
+  level:
+    com.lopes.order: DEBUG
+    org.springframework.data.mongodb: INFO
+    org.springframework.kafka: INFO
+    org.springframework.data.redis: INFO
